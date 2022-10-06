@@ -10,10 +10,7 @@ export default fp(
         services: [
           {
             name: 'user',
-            url: 'http://localhost:4001/graphql',
-            setResponseHeaders: reply => {
-              reply.header('abc', 'abc')
-            }
+            url: 'http://localhost:4001/graphql'
           },
           {
             name: 'post',
