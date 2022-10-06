@@ -1,9 +1,9 @@
 import { FastifyPluginAsync } from 'fastify'
 
-export interface MercuriusExplainOptions {
+export interface MercuriusFederationInfoOptions {
   enabled: boolean
 }
 
-declare const mercuriusExplain: FastifyPluginAsync<MercuriusExplainOptions>
+declare const mercuriusFederationInfo: FastifyPluginAsync<MercuriusFederationInfoOptions>
 
-export default mercuriusExplain
+export default mercuriusFederationInfo
