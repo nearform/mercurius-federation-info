@@ -41,7 +41,7 @@
     "eslint": "^8.23.1",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.2.1",
-    "fastify": "^4.5.3",
+    "fastify": "^4.8.1",
     "husky": "^8.0.1",
     "lint-staged": "^13.0.3",
     "mercurius": "11.0.1",
