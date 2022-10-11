@@ -16,15 +16,15 @@ export default fp(async fastify => {
         introspection.__schema.types.forEach(type => {
           if (type.name.startsWith('_') || type.kind === 'SCALAR') return
           updateExtensionDirective(type, value)
-          updateRequireField(type, value)
+          updateExternalField(type, value)
           updateKeyDirective(type, value)
+          updateRequireField(type, value)
         })
         acc[name] = introspection
         return acc
       },
       {}
     )
-
     return { status: 'OK', nodes: servicesIntrospection }
   })
 })
@@ -40,12 +40,36 @@ function updateExtensionDirective(type, value) {
 }
 
 function updateRequireField(type, value) {
-  const directives = value.schema._typeMap[
-    type.name
-  ]?.extensionASTNodes[0]?.fields.map(field => {
-    field.name.value
+  type.fields?.forEach(typeField => {
+    const fieldFound = value.schema._typeMap[
+      type.name
+    ]?.extensionASTNodes[0]?.fields.find(f => typeField.name === f.name.value)
+    const requireDirective = fieldFound?.directives?.find(
+      directive => directive.name.value === 'requires'
+    )
+    if (requireDirective) {
+      typeField.requires = requireDirective.arguments.map(arg => ({
+        name: arg.kind.name,
+        type: arg.value.kind,
+        value: arg.value.value
+      }))
+    }
   })
-  console.log(JSON.stringify(directives, null, 2))
+}
+
+function updateExternalField(type, value) {
+  type.fields.forEach(typeField => {
+    const fieldFound = value.schema._typeMap[
+      type.name
+    ]?.extensionASTNodes[0]?.fields.find(f => typeField.name === f.name.value)
+    if (
+      fieldFound?.directives?.find(
+        directive => directive.name.value === 'external'
+      )
+    ) {
+      typeField.isExternal = true
+    }
+  })
 }
 
 function updateKeyDirective(type, value) {
