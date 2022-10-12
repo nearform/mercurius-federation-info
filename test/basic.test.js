@@ -212,4 +212,117 @@ test('field directives are included in the info', async t => {
     url: '/federation-schema'
   })
   t.equal(res.statusCode, 200)
+  const {
+    nodes: { user }
+  } = res.json()
+  const userObj = user['__schema'].types.find(({ name }) => name === 'User')
+  const id = userObj.fields.find(field => field.name === 'id')
+  const name = userObj.fields.find(field => field.name === 'name')
+  const numberOfPosts = userObj.fields.find(
+    field => field.name === 'numberOfPosts'
+  )
+  t.hasProps(id, ['isExternal'])
+  t.hasProps(name, ['isExternal'])
+  t.has(numberOfPosts, {
+    requires: [
+      {
+        type: 'StringValue',
+        value: 'id name'
+      }
+    ]
+  })
+})
+
+test('should handle resolvers, mutations, subscription', async t => {
+  const app = Fastify()
+
+  const schemaAlt = `
+    #graphql
+    extend type Query {
+      me: User
+      you: User
+      hello: String
+    }
+
+    type User @key(fields: "id") {
+      id: ID!
+      name: String!
+      fullName: String
+      avatar(size: AvatarSize): String
+      friends: [User]
+    }
+
+    enum AvatarSize {
+      small
+      medium
+      large
+    }
+  `
+  const schema = `
+    #graphql
+    type Post @key(fields: "pid") {
+      pid: ID!
+      title: String
+      content: String
+      author: User @requires(fields: "pid title")
+    }
+
+    type Query @extends {
+      topPosts(count: Int): [Post]
+    }
+
+    type User @key(fields: "id") @extends {
+      id: ID! @external
+      name: String @external
+      posts: [Post]
+      numberOfPosts: Int @requires(fields: "id name")
+    }
+
+    extend type Mutation {
+      createPost(post: PostInput!): Post
+      updateHello: String
+    }
+
+    input PostInput {
+      title: String!
+      content: String!
+      authorId: String!
+    }
+  `
+
+  const [nodeOne, nodeOnePort] = await createNode(schema)
+  const [nodeTwo, nodeTwoPort] = await createNode(schemaAlt)
+
+  t.teardown(async () => {
+    await app.close()
+    await nodeOne.close()
+    await nodeTwo.close()
+  })
+
+  app.register(mercurius, {
+    gateway: {
+      services: [
+        {
+          name: 'user',
+          url: `http://localhost:${nodeOnePort}`
+        },
+        {
+          name: 'post',
+          url: `http://localhost:${nodeTwoPort}`
+        }
+      ]
+    }
+  })
+  app.register(import('../index.js'), {})
+
+  const res = await app.inject({
+    method: 'GET',
+    url: '/federation-schema'
+  })
+  const { nodes } = res.json()
+  t.equal(res.statusCode, 200)
+  t.hasProps(nodes, ['user', 'post'])
+  const { user, post } = nodes
+  t.hasProp(user, '__schema')
+  t.hasProp(post, '__schema')
 })
