@@ -1,10 +1,10 @@
 import fp from 'fastify-plugin'
 import graphql from 'graphql'
 
-export default fp(async fastify => {
+export default fp(async (fastify, options) => {
+  if (!options?.enabled) return
   fastify.get('/federation-schema', () => {
     const serviceMap = fastify.graphql.gateway.serviceMap
-
     const servicesIntrospection = Object.entries(serviceMap).reduce(
       (acc, [name, value]) => {
         const introspection = graphql.introspectionFromSchema(value.schema, {
