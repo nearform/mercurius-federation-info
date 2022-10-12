@@ -52,12 +52,14 @@ fastify.register(mercuriusFederationInfo, { enabled: true })
 
 - **enabled**
 
-Enables the plugin, default is `false`.
+Enables or disables the plugin, default is `true`.
 Example:
 
 ```js
 fastify.register(mercuriusFederationInfo, {
-   enabled: true
+   enabled: false
  }
 ```
+## Example
 
+To test the plugin run `npm run example`

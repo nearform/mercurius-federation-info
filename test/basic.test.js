@@ -48,7 +48,7 @@ test('return explain value', async t => {
       ]
     }
   })
-  app.register(import('../index.js'), { enabled: true })
+  app.register(import('../index.js'), {})
 
   const res = await app.inject({
     method: 'GET',
@@ -116,7 +116,7 @@ test('directives are included in the info', async t => {
       ]
     }
   })
-  app.register(import('../index.js'), { enabled: true })
+  app.register(import('../index.js'), {})
 
   const res = await app.inject({
     method: 'GET',
@@ -205,7 +205,7 @@ test('field directives are included in the info', async t => {
       ]
     }
   })
-  app.register(import('../index.js'), { enabled: true })
+  app.register(import('../index.js'), {})
 
   const res = await app.inject({
     method: 'GET',
@@ -313,7 +313,7 @@ test('should handle resolvers, mutations, subscription', async t => {
       ]
     }
   })
-  app.register(import('../index.js'), { enabled: true })
+  app.register(import('../index.js'), {})
   const res = await app.inject({
     method: 'GET',
     url: '/federation-schema'
@@ -379,4 +379,59 @@ test('enabled false should return 404', async t => {
   })
 
   t.equal(res.statusCode, 404)
+})
+
+test('should apply default values if options is undefined', async t => {
+  const app = Fastify()
+
+  const schemaAlt = `
+    type Query {
+      me: User
+    }
+
+    type User {
+      id: ID
+      name: String
+      fullName: String
+    }`
+
+  const schema = `
+    type Query {
+      customer: Customer
+    }
+    type Customer{
+      age: Int
+    }
+  `
+  const [nodeOne, nodeOnePort] = await createNode(schema)
+  const [nodeTwo, nodeTwoPort] = await createNode(schemaAlt)
+
+  t.teardown(async () => {
+    await app.close()
+    await nodeOne.close()
+    await nodeTwo.close()
+  })
+
+  app.register(mercurius, {
+    gateway: {
+      services: [
+        {
+          name: 'user',
+          url: `http://localhost:${nodeOnePort}`
+        },
+        {
+          name: 'customer',
+          url: `http://localhost:${nodeTwoPort}`
+        }
+      ]
+    }
+  })
+  app.register(import('../index.js'), undefined)
+
+  const res = await app.inject({
+    method: 'GET',
+    url: '/federation-schema'
+  })
+
+  t.equal(res.statusCode, 200)
 })
