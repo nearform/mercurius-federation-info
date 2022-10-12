@@ -58,7 +58,7 @@ function updateRequireField(type, value) {
 }
 
 function updateExternalField(type, value) {
-  type.fields.forEach(typeField => {
+  type.fields?.forEach(typeField => {
     const fieldFound = value.schema._typeMap[
       type.name
     ]?.extensionASTNodes[0]?.fields.find(f => typeField.name === f.name.value)
