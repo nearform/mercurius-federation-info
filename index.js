@@ -1,12 +1,9 @@
 import fp from 'fastify-plugin'
 import graphql from 'graphql'
-
-const defaultOptions = {
-  enabled: true
-}
+import { DEFAULT_OPTIONS } from './lib/constant.js'
 
 export default fp(async (fastify, userOptions) => {
-  const options = { ...defaultOptions, ...userOptions }
+  const options = { ...DEFAULT_OPTIONS, ...userOptions }
   if (!options.enabled) return
   fastify.get('/federation-schema', () => {
     const serviceMap = fastify.graphql.gateway.serviceMap

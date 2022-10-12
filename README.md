@@ -45,7 +45,7 @@ import mercuriusFederationInfo from 'mercurius-federation-info'
 
 const fastify = Fastify({ logger: true })
 fastify.register(mercurius, { schema })
-fastify.register(mercuriusFederationInfo, { enabled: true })
+fastify.register(mercuriusFederationInfo, {})
 ```
 
 ## Options
@@ -60,6 +60,7 @@ fastify.register(mercuriusFederationInfo, {
    enabled: false
  }
 ```
+
 ## Example
 
 To test the plugin run `npm run example`
