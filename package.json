@@ -61,6 +61,6 @@
     "mercurius": "11.x"
   },
   "dependencies": {
-    "fastify-plugin": "^4.2.1"
+    "fastify-plugin": "^4.3.0"
   }
 }
