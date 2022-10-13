@@ -1,8 +1,18 @@
 import fp from 'fastify-plugin'
 import graphql from 'graphql'
+import { DEFAULT_OPTIONS } from './lib/constant.js'
+import {
+  updateExtensionDirective,
+  updateExternalField,
+  updateKeyDirective,
+  updateRequireField
+} from './lib//directive.js'
 
-export default fp(async fastify => {
-  fastify.get('/federation-schema', () => {
+export default fp(async (fastify, userOptions) => {
+  const options = { ...DEFAULT_OPTIONS, ...userOptions }
+  fastify.get('/federation-schema', async (request, reply, context) => {
+    const enabled = await isEnabled(options, { request, reply, context })
+    if (!enabled) reply.code(403).send({ code: 403, message: 'Disabled' })
     const serviceMap = fastify.graphql.gateway.serviceMap
 
     const servicesIntrospection = Object.entries(serviceMap).reduce(
@@ -29,61 +39,12 @@ export default fp(async fastify => {
   })
 })
 
-function updateExtensionDirective(type, value) {
-  if (
-    value.schema._typeMap[type.name]?.extensionASTNodes[0]?.directives?.find(
-      directive => directive?.name?.value === 'extends'
-    )
-  ) {
-    type.isExtension = true
-  }
-}
-
-function updateRequireField(type, value) {
-  type.fields?.forEach(typeField => {
-    const fieldFound = value.schema._typeMap[
-      type.name
-    ]?.extensionASTNodes[0]?.fields.find(f => typeField.name === f.name.value)
-    const requireDirective = fieldFound?.directives?.find(
-      directive => directive.name.value === 'requires'
-    )
-    if (requireDirective) {
-      typeField.requires = requireDirective.arguments.map(arg => ({
-        name: arg.kind.name,
-        type: arg.value.kind,
-        value: arg.value.value
-      }))
-    }
-  })
-}
-
-function updateExternalField(type, value) {
-  type.fields?.forEach(typeField => {
-    const fieldFound = value.schema._typeMap[
-      type.name
-    ]?.extensionASTNodes[0]?.fields.find(f => typeField.name === f.name.value)
-    if (
-      fieldFound?.directives?.find(
-        directive => directive.name.value === 'external'
-      )
-    ) {
-      typeField.isExternal = true
-    }
-  })
-}
-
-function updateKeyDirective(type, value) {
-  const key = value.schema._typeMap[
-    type.name
-  ]?.extensionASTNodes[0]?.directives?.find(
-    directive => directive?.name?.value === 'key'
-  )
-
-  if (key) {
-    type.key = key.arguments.map(arg => ({
-      name: arg.kind.name,
-      type: arg.value.kind,
-      value: arg.value.value
-    }))
+async function isEnabled(options, { request, reply, context }) {
+  try {
+    return typeof options.enabled === 'function'
+      ? options.enabled({ request, reply, context })
+      : options.enabled
+  } catch (error) {
+    return false
   }
 }
