@@ -72,7 +72,7 @@ test('directives are included in the info', async t => {
       fullName: String
       friends: [User]
     }
-    
+
     type Post  @key(fields: "pid") @extends {
       status: String
     }
@@ -325,4 +325,236 @@ test('should handle resolvers, mutations, subscription', async t => {
   const { user, post } = nodes
   t.hasProp(user, '__schema')
   t.hasProp(post, '__schema')
+})
+
+test('enabled false should return 403', async t => {
+  const app = Fastify()
+
+  const schemaAlt = `
+    type Query {
+      me: User
+    }
+
+    type User {
+      id: ID
+      name: String
+      fullName: String
+    }`
+
+  const schema = `
+    type Query {
+      customer: Customer
+    }
+    type Customer{
+      age: Int
+    }
+  `
+  const [nodeOne, nodeOnePort] = await createNode(schema)
+  const [nodeTwo, nodeTwoPort] = await createNode(schemaAlt)
+
+  t.teardown(async () => {
+    await app.close()
+    await nodeOne.close()
+    await nodeTwo.close()
+  })
+
+  app.register(mercurius, {
+    gateway: {
+      services: [
+        {
+          name: 'user',
+          url: `http://localhost:${nodeOnePort}`
+        },
+        {
+          name: 'customer',
+          url: `http://localhost:${nodeTwoPort}`
+        }
+      ]
+    }
+  })
+  app.register(import('../index.js'), { enabled: false })
+
+  const res = await app.inject({
+    method: 'GET',
+    url: '/federation-schema'
+  })
+  t.equal(res.statusCode, 403)
+})
+
+test('should apply default values if options is undefined', async t => {
+  const app = Fastify()
+
+  const schemaAlt = `
+    type Query {
+      me: User
+    }
+
+    type User {
+      id: ID
+      name: String
+      fullName: String
+    }`
+
+  const schema = `
+    type Query {
+      customer: Customer
+    }
+    type Customer{
+      age: Int
+    }
+  `
+  const [nodeOne, nodeOnePort] = await createNode(schema)
+  const [nodeTwo, nodeTwoPort] = await createNode(schemaAlt)
+
+  t.teardown(async () => {
+    await app.close()
+    await nodeOne.close()
+    await nodeTwo.close()
+  })
+
+  app.register(mercurius, {
+    gateway: {
+      services: [
+        {
+          name: 'user',
+          url: `http://localhost:${nodeOnePort}`
+        },
+        {
+          name: 'customer',
+          url: `http://localhost:${nodeTwoPort}`
+        }
+      ]
+    }
+  })
+  app.register(import('../index.js'), undefined)
+
+  const res = await app.inject({
+    method: 'GET',
+    url: '/federation-schema'
+  })
+
+  t.equal(res.statusCode, 200)
+})
+
+test('enabled should be a function', async t => {
+  const app = Fastify()
+
+  const schemaAlt = `
+    type Query {
+      me: User
+    }
+
+    type User {
+      id: ID
+      name: String
+      fullName: String
+    }`
+
+  const schema = `
+    type Query {
+      customer: Customer
+    }
+    type Customer{
+      age: Int
+    }
+  `
+  const [nodeOne, nodeOnePort] = await createNode(schema)
+  const [nodeTwo, nodeTwoPort] = await createNode(schemaAlt)
+
+  t.teardown(async () => {
+    await app.close()
+    await nodeOne.close()
+    await nodeTwo.close()
+  })
+
+  app.register(mercurius, {
+    gateway: {
+      services: [
+        {
+          name: 'user',
+          url: `http://localhost:${nodeOnePort}`
+        },
+        {
+          name: 'customer',
+          url: `http://localhost:${nodeTwoPort}`
+        }
+      ]
+    }
+  })
+  app.register(import('../index.js'), {
+    enabled: ({ request }) => {
+      return request.headers.allowed
+    }
+  })
+
+  const res = await app.inject({
+    method: 'GET',
+    headers: {
+      allowed: true
+    },
+    url: '/federation-schema'
+  })
+  t.equal(res.statusCode, 200)
+})
+
+test('should catch handle error', async t => {
+  const app = Fastify()
+
+  const schemaAlt = `
+    type Query {
+      me: User
+    }
+
+    type User {
+      id: ID
+      name: String
+      fullName: String
+    }`
+
+  const schema = `
+    type Query {
+      customer: Customer
+    }
+    type Customer{
+      age: Int
+    }
+  `
+  const [nodeOne, nodeOnePort] = await createNode(schema)
+  const [nodeTwo, nodeTwoPort] = await createNode(schemaAlt)
+
+  t.teardown(async () => {
+    await app.close()
+    await nodeOne.close()
+    await nodeTwo.close()
+  })
+
+  app.register(mercurius, {
+    gateway: {
+      services: [
+        {
+          name: 'user',
+          url: `http://localhost:${nodeOnePort}`
+        },
+        {
+          name: 'customer',
+          url: `http://localhost:${nodeTwoPort}`
+        }
+      ]
+    }
+  })
+  app.register(import('../index.js'), {
+    enabled: () => {
+      throw new Error()
+    }
+  })
+
+  const res = await app.inject({
+    method: 'GET',
+    headers: {
+      allowed: true
+    },
+    url: '/federation-schema'
+  })
+
+  t.equal(res.statusCode, 403)
 })
