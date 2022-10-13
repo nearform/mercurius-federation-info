@@ -494,7 +494,6 @@ test('enabled should be a function', async t => {
     },
     url: '/federation-schema'
   })
-
   t.equal(res.statusCode, 200)
 })
 
