@@ -148,9 +148,9 @@ app.register(mercuriusFederationInfo, {
 
 ```js
 // enabled only if the request has 'explain' header
-app.register(app.register(mercuriusFederationInfo, {
-   enabled: ({ request, reply, context }) => request.headers.allowed
-  })
+app.register(mercuriusFederationInfo, {
+  enabled: ({ request, reply, context }) => request.headers.allowed
+})
 ```
 
 - **path**
