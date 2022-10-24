@@ -2,7 +2,7 @@ import Fastify from 'fastify'
 import mercurius from 'mercurius'
 import { test } from 'tap'
 import { createNode } from './shared/createFederationNode.js'
-
+import { federationInfoGraphiQLPlugin } from '../index.js'
 test('return explain value', async t => {
   const app = Fastify()
 
@@ -35,6 +35,10 @@ test('return explain value', async t => {
   })
 
   app.register(mercurius, {
+    graphiql: {
+      enabled: true,
+      plugins: [federationInfoGraphiQLPlugin()]
+    },
     gateway: {
       services: [
         {

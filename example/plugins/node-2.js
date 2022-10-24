@@ -26,7 +26,11 @@ export default fp(
       hello: String
     }
 
-    type User @key(fields: "id") {
+    type Subscription @extends{ 
+      newUserAdded: User
+    }
+
+    type User @key(fields: "id") @deprecated @test {
       id: ID!
       name: String!
       fullName: String
@@ -50,6 +54,12 @@ export default fp(
           throw new Error("Can't fetch other users data, NOT_ALLOWED")
         },
         hello: () => 'world'
+      },
+      Subscription: {
+        newUserAdded: {
+          subscribe: async (_root, _args, { pubsub }) =>
+            await pubsub.subscribe('USER_ADDED')
+        }
       },
       User: {
         __resolveReference: user => {

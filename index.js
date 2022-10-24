@@ -48,3 +48,16 @@ async function isEnabled(options, { request, reply, context }) {
     return false
   }
 }
+
+export function federationInfoGraphiQLPlugin({
+  federationSchemaUrl = '/federation-schema'
+} = {}) {
+  return {
+    props: {
+      federationSchemaUrl
+    },
+    name: 'federationInfo',
+    umdUrl:
+      'https://unpkg.com/mercurius-federation-info-graphiql-plugin/dist/umd/index.js'
+  }
+}
