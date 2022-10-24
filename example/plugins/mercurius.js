@@ -4,7 +4,7 @@ import fp from 'fastify-plugin'
 export default fp(
   async (fastify, options) => {
     fastify.register(mercurius, {
-      graphiql: options.graphql.graphiql,
+      graphiql: options.graphiql,
       jit: 1,
       gateway: {
         services: [

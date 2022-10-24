@@ -1,9 +1,13 @@
 import { join } from 'desm'
+import { federationInfoGraphiQLPlugin } from '../index.js'
 export default {
   app: {
     port: 3001
   },
   log: { pretty: true },
   autoload: [{ path: join(import.meta.url, './plugins') }],
-  graphql: { graphiql: true }
+  graphiql: {
+    enabled: true,
+    plugins: [federationInfoGraphiQLPlugin()]
+  }
 }
