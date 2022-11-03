@@ -18,19 +18,19 @@ The response object has this structure:
 ```json
 {
   "status": "OK",
-  "nodes": {
-    "node-1": {
-      // the name of the federated node
+  "version": '1.2.3",
+  "services": {
+    "service-1": { // the name of the federated service
       "__schema": {}
     },
-    "node-2": {
+    "service-2": {
       "__schema": {}
     }
   }
 }
 ```
 
-The `__schema` object describes the configuration of the federated node.
+The `__schema` object describes the configuration of the federated service.
 
 ```json
 {
@@ -157,4 +157,44 @@ app.register(explain, {
 app.register(mercuriusFederationInfo, {
    path: '/custom-path'
  }
+```
+
+
+## Add the viewer plugin to mercurius GraphiQL  (mercurius-federation-info-graphiql-plugin)
+
+In `mercurius` it is possibile to add to the self hosted GraphiQL app
+the plugin [mercurius-federation-info-graphiql-plugin](https://github.com/nearform/mercurius-federation-info-graphiql-plugin) to show the data returned by `mercurius explain`.
+
+### federationInfoGraphiQLPlugin helper
+This function return the required structure to initialize the plugin.
+
+`federationInfoGraphiQLPlugin`: `function(options)`
+- `options`: `null` | `object`
+  - `options.version`: `string`. The version of the GraphiQL plugin to be loaded. Default: the same major version of the backend plugin
+
+**Example**
+```js
+import { federationInfoGraphiQLPlugin } from 'mercurius-federation-info'
+
+app.register(mercurius, {
+  schema,
+  resolvers,
+  graphiql: {
+    plugins: [federationInfoGraphiQLPlugin()]
+  }
+})
+```
+
+The `federationInfoGraphiQLPlugin` function initializes by default the plugin with the same major version in the `package.json` (eg. if the package is `3.4.5` it will load the version `^3` of the GraphiQL plugin).
+
+It's possible to override the version by passing a parameter.
+
+```javascript
+...
+plugins: [federationInfoGraphiQLPlugin({version: '3.4.5')]
+
+// or 
+
+plugins: [federationInfoGraphiQLPlugin({version: '^4')]
+...
 ```
