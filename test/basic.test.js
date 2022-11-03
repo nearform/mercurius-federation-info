@@ -3,7 +3,12 @@ import mercurius from 'mercurius'
 import { test } from 'tap'
 import createFederationService from './shared/createFederationService.js'
 import { federationInfoGraphiQLPlugin } from '../index.js'
-test('return explain value', async t => {
+import { readFileSync } from 'fs'
+
+const fileUrl = new URL('../package.json', import.meta.url)
+const packageJSON = JSON.parse(readFileSync(fileUrl))
+
+test('return federation info values', async t => {
   const app = Fastify()
 
   const schemaAlt = `
@@ -58,8 +63,9 @@ test('return explain value', async t => {
     method: 'GET',
     url: '/federation-schema'
   })
-  const { services } = res.json()
+  const { services, version } = res.json()
   t.equal(res.statusCode, 200)
+  t.equal(version, packageJSON.version)
   t.hasProps(services, ['user', 'customer'])
   const { user, customer } = services
   t.hasProp(user, '__schema')

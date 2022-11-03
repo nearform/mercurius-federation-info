@@ -1,4 +1,6 @@
+import { readFileSync } from 'fs'
 import fp from 'fastify-plugin'
+import semver from 'semver'
 import graphql from 'graphql'
 import { DEFAULT_OPTIONS } from './lib/constant.js'
 import {
@@ -7,6 +9,9 @@ import {
   updateKeyDirective,
   updateRequireField
 } from './lib//directive.js'
+
+const fileUrl = new URL('./package.json', import.meta.url)
+const packageJSON = JSON.parse(readFileSync(fileUrl))
 
 export default fp(async (fastify, userOptions) => {
   const options = { ...DEFAULT_OPTIONS, ...userOptions }
@@ -35,7 +40,11 @@ export default fp(async (fastify, userOptions) => {
       },
       {}
     )
-    return { status: 'OK', services: servicesIntrospection }
+    return {
+      status: 'OK',
+      version: packageJSON.version,
+      services: servicesIntrospection
+    }
   })
 })
 
@@ -50,14 +59,15 @@ async function isEnabled(options, { request, reply, context }) {
 }
 
 export function federationInfoGraphiQLPlugin({
-  federationSchemaUrl = '/federation-schema'
+  federationSchemaUrl = '/federation-schema',
+  version
 } = {}) {
+  const packageVersion = version || `^${semver.major(packageJSON.version)}`
   return {
     props: {
       federationSchemaUrl
     },
     name: 'federationInfo',
-    umdUrl:
-      'https://unpkg.com/mercurius-federation-info-graphiql-plugin/dist/umd/index.js'
+    umdUrl: `https://unpkg.com/mercurius-federation-info-graphiql-plugin@${packageVersion}/dist/umd/index.js`
   }
 }
