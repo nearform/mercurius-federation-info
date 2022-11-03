@@ -35,7 +35,7 @@ export default fp(async (fastify, userOptions) => {
       },
       {}
     )
-    return { status: 'OK', nodes: servicesIntrospection }
+    return { status: 'OK', services: servicesIntrospection }
   })
 })
 

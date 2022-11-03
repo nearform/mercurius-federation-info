@@ -1,7 +1,7 @@
 import Fastify from 'fastify'
 import mercurius from 'mercurius'
 
-export async function createNode(schema, resolvers) {
+async function createService(name, schema, resolvers, port) {
   const app = Fastify()
   app.register(mercurius, {
     schema,
@@ -9,11 +9,12 @@ export async function createNode(schema, resolvers) {
     federationMetadata: true
   })
 
-  app.post('/', async function () {
+  app.get('/', async function () {
     const query = '{ _service { sdl } }'
     return app.graphql(query)
   })
 
-  await app.listen({ port: 0 })
-  return [app, app.server.address().port]
+  await app.listen({ port })
 }
+
+export default createService

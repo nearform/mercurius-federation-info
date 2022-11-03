@@ -1,7 +1,7 @@
 import Fastify from 'fastify'
 import mercurius from 'mercurius'
 import { test } from 'tap'
-import { createNode } from './shared/createFederationNode.js'
+import createFederationService from './shared/createFederationService.js'
 import { federationInfoGraphiQLPlugin } from '../index.js'
 test('return explain value', async t => {
   const app = Fastify()
@@ -25,13 +25,13 @@ test('return explain value', async t => {
       age: Int
     }
   `
-  const [nodeOne, nodeOnePort] = await createNode(schema)
-  const [nodeTwo, nodeTwoPort] = await createNode(schemaAlt)
+  const [serviceOne, serviceOnePort] = await createFederationService(schema)
+  const [serviceTwo, serviceTwoPort] = await createFederationService(schemaAlt)
 
   t.teardown(async () => {
     await app.close()
-    await nodeOne.close()
-    await nodeTwo.close()
+    await serviceOne.close()
+    await serviceTwo.close()
   })
 
   app.register(mercurius, {
@@ -43,11 +43,11 @@ test('return explain value', async t => {
       services: [
         {
           name: 'user',
-          url: `http://localhost:${nodeOnePort}`
+          url: `http://localhost:${serviceOnePort}`
         },
         {
           name: 'customer',
-          url: `http://localhost:${nodeTwoPort}`
+          url: `http://localhost:${serviceTwoPort}`
         }
       ]
     }
@@ -58,10 +58,10 @@ test('return explain value', async t => {
     method: 'GET',
     url: '/federation-schema'
   })
-  const { nodes } = res.json()
+  const { services } = res.json()
   t.equal(res.statusCode, 200)
-  t.hasProps(nodes, ['user', 'customer'])
-  const { user, customer } = nodes
+  t.hasProps(services, ['user', 'customer'])
+  const { user, customer } = services
   t.hasProp(user, '__schema')
   t.hasProp(customer, '__schema')
 })
@@ -97,13 +97,13 @@ test('directives are included in the info', async t => {
     numberOfPosts: Int
   }`
 
-  const [nodeOne, nodeOnePort] = await createNode(schema)
-  const [nodeTwo, nodeTwoPort] = await createNode(schemaAlt)
+  const [serviceOne, serviceOnePort] = await createFederationService(schema)
+  const [serviceTwo, serviceTwoPort] = await createFederationService(schemaAlt)
 
   t.teardown(async () => {
     await app.close()
-    await nodeOne.close()
-    await nodeTwo.close()
+    await serviceOne.close()
+    await serviceTwo.close()
   })
 
   app.register(mercurius, {
@@ -111,11 +111,11 @@ test('directives are included in the info', async t => {
       services: [
         {
           name: 'user',
-          url: `http://localhost:${nodeOnePort}`
+          url: `http://localhost:${serviceOnePort}`
         },
         {
           name: 'post',
-          url: `http://localhost:${nodeTwoPort}`
+          url: `http://localhost:${serviceTwoPort}`
         }
       ]
     }
@@ -128,7 +128,7 @@ test('directives are included in the info', async t => {
   })
   t.equal(res.statusCode, 200)
   const {
-    nodes: { user, post }
+    services: { user, post }
   } = res.json()
   const userObj = user['__schema'].types.find(({ name }) => name === 'User')
   const postObj = post['__schema'].types.find(({ name }) => name === 'Post')
@@ -186,13 +186,13 @@ test('field directives are included in the info', async t => {
     }
   `
 
-  const [nodeOne, nodeOnePort] = await createNode(schema)
-  const [nodeTwo, nodeTwoPort] = await createNode(schemaAlt)
+  const [serviceOne, serviceOnePort] = await createFederationService(schema)
+  const [serviceTwo, serviceTwoPort] = await createFederationService(schemaAlt)
 
   t.teardown(async () => {
     await app.close()
-    await nodeOne.close()
-    await nodeTwo.close()
+    await serviceOne.close()
+    await serviceTwo.close()
   })
 
   app.register(mercurius, {
@@ -200,11 +200,11 @@ test('field directives are included in the info', async t => {
       services: [
         {
           name: 'user',
-          url: `http://localhost:${nodeOnePort}`
+          url: `http://localhost:${serviceOnePort}`
         },
         {
           name: 'post',
-          url: `http://localhost:${nodeTwoPort}`
+          url: `http://localhost:${serviceTwoPort}`
         }
       ]
     }
@@ -217,7 +217,7 @@ test('field directives are included in the info', async t => {
   })
   t.equal(res.statusCode, 200)
   const {
-    nodes: { user }
+    services: { user }
   } = res.json()
   const userObj = user['__schema'].types.find(({ name }) => name === 'User')
   const id = userObj.fields.find(field => field.name === 'id')
@@ -294,13 +294,13 @@ test('should handle resolvers, mutations, subscription', async t => {
     }
   `
 
-  const [nodeOne, nodeOnePort] = await createNode(schema)
-  const [nodeTwo, nodeTwoPort] = await createNode(schemaAlt)
+  const [serviceOne, serviceOnePort] = await createFederationService(schema)
+  const [serviceTwo, serviceTwoPort] = await createFederationService(schemaAlt)
 
   t.teardown(async () => {
     await app.close()
-    await nodeOne.close()
-    await nodeTwo.close()
+    await serviceOne.close()
+    await serviceTwo.close()
   })
 
   app.register(mercurius, {
@@ -308,11 +308,11 @@ test('should handle resolvers, mutations, subscription', async t => {
       services: [
         {
           name: 'user',
-          url: `http://localhost:${nodeOnePort}`
+          url: `http://localhost:${serviceOnePort}`
         },
         {
           name: 'post',
-          url: `http://localhost:${nodeTwoPort}`
+          url: `http://localhost:${serviceTwoPort}`
         }
       ]
     }
@@ -323,10 +323,10 @@ test('should handle resolvers, mutations, subscription', async t => {
     method: 'GET',
     url: '/federation-schema'
   })
-  const { nodes } = res.json()
+  const { services } = res.json()
   t.equal(res.statusCode, 200)
-  t.hasProps(nodes, ['user', 'post'])
-  const { user, post } = nodes
+  t.hasProps(services, ['user', 'post'])
+  const { user, post } = services
   t.hasProp(user, '__schema')
   t.hasProp(post, '__schema')
 })
@@ -353,13 +353,13 @@ test('enabled false should return 403', async t => {
       age: Int
     }
   `
-  const [nodeOne, nodeOnePort] = await createNode(schema)
-  const [nodeTwo, nodeTwoPort] = await createNode(schemaAlt)
+  const [serviceOne, serviceOnePort] = await createFederationService(schema)
+  const [serviceTwo, serviceTwoPort] = await createFederationService(schemaAlt)
 
   t.teardown(async () => {
     await app.close()
-    await nodeOne.close()
-    await nodeTwo.close()
+    await serviceOne.close()
+    await serviceTwo.close()
   })
 
   app.register(mercurius, {
@@ -367,11 +367,11 @@ test('enabled false should return 403', async t => {
       services: [
         {
           name: 'user',
-          url: `http://localhost:${nodeOnePort}`
+          url: `http://localhost:${serviceOnePort}`
         },
         {
           name: 'customer',
-          url: `http://localhost:${nodeTwoPort}`
+          url: `http://localhost:${serviceTwoPort}`
         }
       ]
     }
@@ -407,13 +407,13 @@ test('should apply default values if options is undefined', async t => {
       age: Int
     }
   `
-  const [nodeOne, nodeOnePort] = await createNode(schema)
-  const [nodeTwo, nodeTwoPort] = await createNode(schemaAlt)
+  const [serviceOne, serviceOnePort] = await createFederationService(schema)
+  const [serviceTwo, serviceTwoPort] = await createFederationService(schemaAlt)
 
   t.teardown(async () => {
     await app.close()
-    await nodeOne.close()
-    await nodeTwo.close()
+    await serviceOne.close()
+    await serviceTwo.close()
   })
 
   app.register(mercurius, {
@@ -421,11 +421,11 @@ test('should apply default values if options is undefined', async t => {
       services: [
         {
           name: 'user',
-          url: `http://localhost:${nodeOnePort}`
+          url: `http://localhost:${serviceOnePort}`
         },
         {
           name: 'customer',
-          url: `http://localhost:${nodeTwoPort}`
+          url: `http://localhost:${serviceTwoPort}`
         }
       ]
     }
@@ -462,13 +462,13 @@ test('enabled should be a function', async t => {
       age: Int
     }
   `
-  const [nodeOne, nodeOnePort] = await createNode(schema)
-  const [nodeTwo, nodeTwoPort] = await createNode(schemaAlt)
+  const [serviceOne, serviceOnePort] = await createFederationService(schema)
+  const [serviceTwo, serviceTwoPort] = await createFederationService(schemaAlt)
 
   t.teardown(async () => {
     await app.close()
-    await nodeOne.close()
-    await nodeTwo.close()
+    await serviceOne.close()
+    await serviceTwo.close()
   })
 
   app.register(mercurius, {
@@ -476,11 +476,11 @@ test('enabled should be a function', async t => {
       services: [
         {
           name: 'user',
-          url: `http://localhost:${nodeOnePort}`
+          url: `http://localhost:${serviceOnePort}`
         },
         {
           name: 'customer',
-          url: `http://localhost:${nodeTwoPort}`
+          url: `http://localhost:${serviceTwoPort}`
         }
       ]
     }
@@ -523,13 +523,13 @@ test('should catch handle error', async t => {
       age: Int
     }
   `
-  const [nodeOne, nodeOnePort] = await createNode(schema)
-  const [nodeTwo, nodeTwoPort] = await createNode(schemaAlt)
+  const [serviceOne, serviceOnePort] = await createFederationService(schema)
+  const [serviceTwo, serviceTwoPort] = await createFederationService(schemaAlt)
 
   t.teardown(async () => {
     await app.close()
-    await nodeOne.close()
-    await nodeTwo.close()
+    await serviceOne.close()
+    await serviceTwo.close()
   })
 
   app.register(mercurius, {
@@ -537,11 +537,11 @@ test('should catch handle error', async t => {
       services: [
         {
           name: 'user',
-          url: `http://localhost:${nodeOnePort}`
+          url: `http://localhost:${serviceOnePort}`
         },
         {
           name: 'customer',
-          url: `http://localhost:${nodeTwoPort}`
+          url: `http://localhost:${serviceTwoPort}`
         }
       ]
     }

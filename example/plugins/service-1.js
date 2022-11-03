@@ -1,5 +1,5 @@
 import fp from 'fastify-plugin'
-import createFederationNode from '../createFederationNode.js'
+import createFederationService from '../createFederationService.js'
 
 const posts = {
   p1: {
@@ -101,12 +101,12 @@ export default fp(
       }
     }
 
-    fastify.log.info('Initializing node Node 1 on port 4002')
-    await createFederationNode('Node 1', schema, resolvers, 4002)
-    fastify.log.info('Started node Node 1 on port 4002')
+    fastify.log.info('Initializing Service 1 on port 4002')
+    await createFederationService('Service 1', schema, resolvers, 4002)
+    fastify.log.info('Started Service 1 on port 4002')
   },
   {
-    name: 'node-1',
+    name: 'service-1',
     dependencies: []
   }
 )

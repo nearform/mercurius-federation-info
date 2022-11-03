@@ -18,19 +18,18 @@ The response object has this structure:
 ```json
 {
   "status": "OK",
-  "nodes": {
-    "node-1": {
-      // the name of the federated node
+  "services": {
+    "service-1": { // the name of the federated service
       "__schema": {}
     },
-    "node-2": {
+    "service-2": {
       "__schema": {}
     }
   }
 }
 ```
 
-The `__schema` object describes the configuration of the federated node.
+The `__schema` object describes the configuration of the federated service.
 
 ```json
 {

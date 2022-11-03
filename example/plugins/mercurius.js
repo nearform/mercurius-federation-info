@@ -27,6 +27,6 @@ export default fp(
   },
   {
     name: 'mercurius',
-    dependencies: ['node-1', 'node-2']
+    dependencies: ['service-1', 'service-2']
   }
 )
