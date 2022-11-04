@@ -60,14 +60,18 @@ async function isEnabled(options, { request, reply, context }) {
 
 export function federationInfoGraphiQLPlugin({
   federationSchemaUrl = '/federation-schema',
-  version
+  version,
+  umdUrlOverride
 } = {}) {
   const packageVersion = version || `^${semver.major(packageJSON.version)}`
+  const umdUrl = umdUrlOverride
+    ? umdUrlOverride
+    : `https://unpkg.com/mercurius-federation-info-graphiql-plugin@${packageVersion}/dist/umd/index.js`
   return {
     props: {
       federationSchemaUrl
     },
     name: 'federationInfo',
-    umdUrl: `https://unpkg.com/mercurius-federation-info-graphiql-plugin@${packageVersion}/dist/umd/index.js`
+    umdUrl
   }
 }

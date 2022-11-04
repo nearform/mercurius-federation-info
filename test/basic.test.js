@@ -8,6 +8,70 @@ import { readFileSync } from 'fs'
 const fileUrl = new URL('../package.json', import.meta.url)
 const packageJSON = JSON.parse(readFileSync(fileUrl))
 
+test('initialize Plugin with umdUrlOverride', async t => {
+  //TODO: sensible way to test this
+  const app = Fastify()
+
+  const schemaAlt = `
+    type Query {
+      me: User
+    }
+
+    type User {
+      id: ID
+      name: String
+      fullName: String
+    }`
+
+  const schema = `
+    type Query {
+      customer: Customer
+    }
+    type Customer{
+      age: Int
+    }
+  `
+
+  const [serviceOne, serviceOnePort] = await createFederationService(schema)
+  const [serviceTwo, serviceTwoPort] = await createFederationService(schemaAlt)
+
+  t.teardown(async () => {
+    await app.close()
+    await serviceOne.close()
+    await serviceTwo.close()
+  })
+
+  app.register(mercurius, {
+    graphiql: {
+      enabled: true,
+      plugins: [
+        federationInfoGraphiQLPlugin({
+          umdUrlOverride: 'http://overridenUmdUrlTest/index.js'
+        })
+      ]
+    },
+    gateway: {
+      services: [
+        {
+          name: 'user',
+          url: `http://localhost:${serviceOnePort}`
+        },
+        {
+          name: 'customer',
+          url: `http://localhost:${serviceTwoPort}`
+        }
+      ]
+    }
+  })
+  const res = await app.inject({
+    method: 'GET',
+    url: '/graphiql/config.js'
+  })
+
+  t.equal(res.statusCode, 200)
+  const responseHtml = res.body
+  t.ok(responseHtml.includes('"umdUrl":"http://overridenUmdUrlTest/index.js"'))
+})
 test('return federation info values', async t => {
   const app = Fastify()
 
