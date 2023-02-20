@@ -61,6 +61,8 @@
     "mercurius": "11.x"
   },
   "dependencies": {
+    "@mercuriusjs/federation": "^1.0.1",
+    "@mercuriusjs/gateway": "^1.2.0",
     "fastify-plugin": "^4.3.0",
     "semver": "^7.3.8"
   }

@@ -18,7 +18,7 @@ export default fp(async (fastify, userOptions) => {
   fastify.get('/federation-schema', async (request, reply, context) => {
     const enabled = await isEnabled(options, { request, reply, context })
     if (!enabled) reply.code(403).send({ code: 403, message: 'Disabled' })
-    const serviceMap = fastify.graphql.gateway.serviceMap
+    const serviceMap = fastify.graphqlGateway.serviceMap
 
     const servicesIntrospection = Object.entries(serviceMap).reduce(
       (acc, [name, value]) => {
