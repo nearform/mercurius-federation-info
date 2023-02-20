@@ -1,12 +1,11 @@
 import Fastify from 'fastify'
-import mercurius from 'mercurius'
+import { mercuriusFederationPlugin } from '@mercuriusjs/federation'
 
 export default async function createFederationService(schema, resolvers) {
   const app = Fastify()
-  app.register(mercurius, {
+  app.register(mercuriusFederationPlugin, {
     schema,
-    resolvers,
-    federationMetadata: true
+    resolvers
   })
 
   app.post('/', async function () {

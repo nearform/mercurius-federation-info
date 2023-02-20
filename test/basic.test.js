@@ -1,5 +1,5 @@
 import Fastify from 'fastify'
-import mercurius from 'mercurius'
+import mercuriusGateway from '@mercuriusjs/gateway'
 import { test } from 'tap'
 import createFederationService from './shared/createFederationService.js'
 import { federationInfoGraphiQLPlugin } from '../index.js'
@@ -39,7 +39,7 @@ test('return federation info values', async t => {
     await serviceTwo.close()
   })
 
-  app.register(mercurius, {
+  app.register(mercuriusGateway, {
     graphiql: {
       enabled: true,
       plugins: [federationInfoGraphiQLPlugin()]
@@ -112,7 +112,7 @@ test('directives are included in the info', async t => {
     await serviceTwo.close()
   })
 
-  app.register(mercurius, {
+  app.register(mercuriusGateway, {
     gateway: {
       services: [
         {
@@ -201,7 +201,7 @@ test('field directives are included in the info', async t => {
     await serviceTwo.close()
   })
 
-  app.register(mercurius, {
+  app.register(mercuriusGateway, {
     gateway: {
       services: [
         {
@@ -309,7 +309,7 @@ test('should handle resolvers, mutations, subscription', async t => {
     await serviceTwo.close()
   })
 
-  app.register(mercurius, {
+  app.register(mercuriusGateway, {
     gateway: {
       services: [
         {
@@ -368,7 +368,7 @@ test('enabled false should return 403', async t => {
     await serviceTwo.close()
   })
 
-  app.register(mercurius, {
+  app.register(mercuriusGateway, {
     gateway: {
       services: [
         {
@@ -422,7 +422,7 @@ test('should apply default values if options is undefined', async t => {
     await serviceTwo.close()
   })
 
-  app.register(mercurius, {
+  app.register(mercuriusGateway, {
     gateway: {
       services: [
         {
@@ -477,7 +477,7 @@ test('enabled should be a function', async t => {
     await serviceTwo.close()
   })
 
-  app.register(mercurius, {
+  app.register(mercuriusGateway, {
     gateway: {
       services: [
         {
@@ -538,7 +538,7 @@ test('should catch handle error', async t => {
     await serviceTwo.close()
   })
 
-  app.register(mercurius, {
+  app.register(mercuriusGateway, {
     gateway: {
       services: [
         {
