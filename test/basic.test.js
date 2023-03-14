@@ -9,8 +9,13 @@ import { readFileSync } from 'fs'
 const fileUrl = new URL('../package.json', import.meta.url)
 const packageJSON = JSON.parse(readFileSync(fileUrl))
 
-test('"/federation-schema" returns a 404 error if fastify is intanciated without the gateway', async t => {
+test('"/federation-schema" returns a 404 error if fastify is intantiated without the gateway, and logs an error message', async t => {
+  const calledLogs = {}
+
   const app = Fastify()
+  app.log.info = text => {
+    calledLogs[text] = (calledLogs[text] || 0) + 1
+  }
 
   const fakeGateway = fp(async () => {}, {
     name: 'fake-gateway',
@@ -71,6 +76,12 @@ test('"/federation-schema" returns a 404 error if fastify is intanciated without
   })
 
   t.equal(res.statusCode, 404)
+  t.equal(
+    calledLogs[
+      'mercurius-federation-info: init error, mercurius gateway not found'
+    ],
+    1
+  )
 })
 
 test('return federation info values', async t => {
