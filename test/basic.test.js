@@ -9,7 +9,7 @@ import { readFileSync } from 'fs'
 const fileUrl = new URL('../package.json', import.meta.url)
 const packageJSON = JSON.parse(readFileSync(fileUrl))
 
-test('"/federation-schema" returns a 404 error if fastify is intantiated without the gateway, and logs an error message', async t => {
+test('"/federation-schema" returns a 404 error if fastify is instantiated without the gateway, and logs an error message', async t => {
   const calledLogs = {}
 
   const app = Fastify()
