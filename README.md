@@ -119,11 +119,11 @@ is described by the following Object inside the field `types` of `__schema`:
 
 ```js
 import Fastify from 'fastify'
-import mercurius from 'mercurius'
+import mercuriusGateway from '@mercuriusjs/gateway'
 import mercuriusFederationInfo from 'mercurius-federation-info'
 
 const fastify = Fastify({ logger: true })
-fastify.register(mercurius, { schema })
+fastify.register(mercuriusGateway, { schema })
 fastify.register(mercuriusFederationInfo, {})
 ```
 

@@ -15,6 +15,14 @@ const packageJSON = JSON.parse(readFileSync(fileUrl))
 
 export default fp(async (fastify, userOptions) => {
   const options = { ...DEFAULT_OPTIONS, ...userOptions }
+
+  if (!fastify.graphqlGateway) {
+    fastify.log.info(
+      'mercurius-federation-info: init error, mercurius gateway not found'
+    )
+    return
+  }
+
   fastify.get('/federation-schema', async (request, reply, context) => {
     const enabled = await isEnabled(options, { request, reply, context })
     if (!enabled) reply.code(403).send({ code: 403, message: 'Disabled' })
