@@ -1,4 +1,5 @@
 import Fastify from 'fastify'
+import fp from 'fastify-plugin'
 import mercuriusGateway from '@mercuriusjs/gateway'
 import { test } from 'tap'
 import createFederationService from './shared/createFederationService.js'
@@ -7,6 +8,70 @@ import { readFileSync } from 'fs'
 
 const fileUrl = new URL('../package.json', import.meta.url)
 const packageJSON = JSON.parse(readFileSync(fileUrl))
+
+test('"/federation-schema" returns a 404 error if fastify is intanciated without the gateway', async t => {
+  const app = Fastify()
+
+  const fakeGateway = fp(async () => {}, {
+    name: 'fake-gateway',
+    dependencies: []
+  })
+
+  const schemaAlt = `
+    type Query {
+      me: User
+    }
+
+    type User {
+      id: ID
+      name: String
+      fullName: String
+    }`
+
+  const schema = `
+    type Query {
+      customer: Customer
+    }
+    type Customer{
+      age: Int
+    }
+  `
+  const [serviceOne, serviceOnePort] = await createFederationService(schema)
+  const [serviceTwo, serviceTwoPort] = await createFederationService(schemaAlt)
+
+  t.teardown(async () => {
+    await app.close()
+    await serviceOne.close()
+    await serviceTwo.close()
+  })
+
+  app.register(fakeGateway, {
+    graphiql: {
+      enabled: true,
+      plugins: [federationInfoGraphiQLPlugin()]
+    },
+    gateway: {
+      services: [
+        {
+          name: 'user',
+          url: `http://localhost:${serviceOnePort}`
+        },
+        {
+          name: 'customer',
+          url: `http://localhost:${serviceTwoPort}`
+        }
+      ]
+    }
+  })
+  app.register(import('../index.js'), {})
+
+  const res = await app.inject({
+    method: 'GET',
+    url: '/federation-schema'
+  })
+
+  t.equal(res.statusCode, 404)
+})
 
 test('return federation info values', async t => {
   const app = Fastify()
