@@ -1,6 +1,6 @@
 {
   "name": "mercurius-federation-info",
-  "version": "0.2.10",
+  "version": "0.2.11",
   "description": "A plugin for mercurius federation",
   "main": "index.js",
   "type": "module",
