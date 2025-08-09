@@ -1,5 +1,5 @@
 import { expectAssignable } from 'tsd'
-import { MercuriusFederationInfoOptions } from '../../index'
+import type { MercuriusFederationInfoOptions } from '../../index.d.ts'
 const mercuriusFederationInfoOptions = {
   enabled: true,
   path: '/federation-schema'
