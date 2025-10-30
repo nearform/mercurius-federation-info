@@ -1,10 +1,10 @@
+import mercuriusGateway from '@mercuriusjs/gateway'
 import Fastify from 'fastify'
 import fp from 'fastify-plugin'
-import mercuriusGateway from '@mercuriusjs/gateway'
-import { test } from 'tap'
-import createFederationService from './shared/createFederationService.js'
-import { federationInfoGraphiQLPlugin } from '../index.js'
 import { readFileSync } from 'fs'
+import { test } from 'node:test'
+import { federationInfoGraphiQLPlugin } from '../index.js'
+import createFederationService from './shared/createFederationService.js'
 
 const fileUrl = new URL('../package.json', import.meta.url)
 const packageJSON = JSON.parse(readFileSync(fileUrl))
@@ -44,7 +44,7 @@ test('"/federation-schema" returns a 404 error if fastify is instantiated withou
   const [serviceOne, serviceOnePort] = await createFederationService(schema)
   const [serviceTwo, serviceTwoPort] = await createFederationService(schemaAlt)
 
-  t.teardown(async () => {
+  t.after(async () => {
     await app.close()
     await serviceOne.close()
     await serviceTwo.close()
@@ -75,8 +75,8 @@ test('"/federation-schema" returns a 404 error if fastify is instantiated withou
     url: '/federation-schema'
   })
 
-  t.equal(res.statusCode, 404)
-  t.equal(
+  t.assert.strictEqual(res.statusCode, 404)
+  t.assert.strictEqual(
     calledLogs[
       'mercurius-federation-info: init error, mercurius gateway not found'
     ],
@@ -109,7 +109,7 @@ test('return federation info values', async t => {
   const [serviceOne, serviceOnePort] = await createFederationService(schema)
   const [serviceTwo, serviceTwoPort] = await createFederationService(schemaAlt)
 
-  t.teardown(async () => {
+  t.after(async () => {
     await app.close()
     await serviceOne.close()
     await serviceTwo.close()
@@ -140,12 +140,13 @@ test('return federation info values', async t => {
     url: '/federation-schema'
   })
   const { services, version } = res.json()
-  t.equal(res.statusCode, 200)
-  t.equal(version, packageJSON.version)
-  t.hasProps(services, ['user', 'customer'])
+  t.assert.strictEqual(res.statusCode, 200)
+  t.assert.strictEqual(version, packageJSON.version)
+  t.assert.ok(services.user)
+  t.assert.ok(services.customer)
   const { user, customer } = services
-  t.hasProp(user, '__schema')
-  t.hasProp(customer, '__schema')
+  t.assert.ok(user['__schema'])
+  t.assert.ok(customer['__schema'])
 })
 
 test('directives are included in the info', async t => {
@@ -182,7 +183,7 @@ test('directives are included in the info', async t => {
   const [serviceOne, serviceOnePort] = await createFederationService(schema)
   const [serviceTwo, serviceTwoPort] = await createFederationService(schemaAlt)
 
-  t.teardown(async () => {
+  t.after(async () => {
     await app.close()
     await serviceOne.close()
     await serviceTwo.close()
@@ -208,34 +209,26 @@ test('directives are included in the info', async t => {
     method: 'GET',
     url: '/federation-schema'
   })
-  t.equal(res.statusCode, 200)
+  t.assert.strictEqual(res.statusCode, 200)
   const {
     services: { user, post }
   } = res.json()
   const userObj = user['__schema'].types.find(({ name }) => name === 'User')
   const postObj = post['__schema'].types.find(({ name }) => name === 'Post')
-  t.ok(userObj)
-  t.ok(postObj)
-  t.hasProps(userObj, ['key', 'isExtension'])
-  t.hasProps(postObj, ['key', 'isExtension'])
-  t.has(postObj, {
-    isExtension: true,
-    key: [
-      {
-        type: 'StringValue',
-        value: 'pid'
-      }
-    ]
-  })
-  t.has(userObj, {
-    isExtension: true,
-    key: [
-      {
-        type: 'StringValue',
-        value: 'id'
-      }
-    ]
-  })
+  t.assert.ok(userObj)
+  t.assert.ok(postObj)
+  t.assert.ok(userObj['key'])
+  t.assert.ok(userObj['isExtension'])
+  t.assert.ok(postObj['key'])
+  t.assert.ok(postObj['isExtension'])
+  t.assert.ok(postObj.isExtension)
+  t.assert.ok(postObj.key[0])
+  t.assert.ok(postObj.key[0].type === 'StringValue')
+  t.assert.ok(postObj.key[0].value === 'pid')
+  t.assert.ok(userObj.isExtension)
+  t.assert.ok(userObj.key[0])
+  t.assert.ok(userObj.key[0].type === 'StringValue')
+  t.assert.ok(userObj.key[0].value === 'id')
 })
 
 test('field directives are included in the info', async t => {
@@ -271,7 +264,7 @@ test('field directives are included in the info', async t => {
   const [serviceOne, serviceOnePort] = await createFederationService(schema)
   const [serviceTwo, serviceTwoPort] = await createFederationService(schemaAlt)
 
-  t.teardown(async () => {
+  t.after(async () => {
     await app.close()
     await serviceOne.close()
     await serviceTwo.close()
@@ -297,7 +290,7 @@ test('field directives are included in the info', async t => {
     method: 'GET',
     url: '/federation-schema'
   })
-  t.equal(res.statusCode, 200)
+  t.assert.strictEqual(res.statusCode, 200)
   const {
     services: { user }
   } = res.json()
@@ -307,16 +300,11 @@ test('field directives are included in the info', async t => {
   const numberOfPosts = userObj.fields.find(
     field => field.name === 'numberOfPosts'
   )
-  t.hasProps(id, ['isExternal'])
-  t.hasProps(name, ['isExternal'])
-  t.has(numberOfPosts, {
-    requires: [
-      {
-        type: 'StringValue',
-        value: 'id name'
-      }
-    ]
-  })
+  t.assert.ok(id.isExternal)
+  t.assert.ok(name.isExternal)
+  t.assert.ok(numberOfPosts.requires[0])
+  t.assert.ok(numberOfPosts.requires[0].type === 'StringValue')
+  t.assert.ok(numberOfPosts.requires[0].value === 'id name')
 })
 
 test('should handle resolvers, mutations, subscription', async t => {
@@ -379,7 +367,7 @@ test('should handle resolvers, mutations, subscription', async t => {
   const [serviceOne, serviceOnePort] = await createFederationService(schema)
   const [serviceTwo, serviceTwoPort] = await createFederationService(schemaAlt)
 
-  t.teardown(async () => {
+  t.after(async () => {
     await app.close()
     await serviceOne.close()
     await serviceTwo.close()
@@ -406,11 +394,12 @@ test('should handle resolvers, mutations, subscription', async t => {
     url: '/federation-schema'
   })
   const { services } = res.json()
-  t.equal(res.statusCode, 200)
-  t.hasProps(services, ['user', 'post'])
+  t.assert.strictEqual(res.statusCode, 200)
+  t.assert.ok(services.user)
+  t.assert.ok(services.post)
   const { user, post } = services
-  t.hasProp(user, '__schema')
-  t.hasProp(post, '__schema')
+  t.assert.ok(user['__schema'])
+  t.assert.ok(post['__schema'])
 })
 
 test('enabled false should return 403', async t => {
@@ -438,7 +427,7 @@ test('enabled false should return 403', async t => {
   const [serviceOne, serviceOnePort] = await createFederationService(schema)
   const [serviceTwo, serviceTwoPort] = await createFederationService(schemaAlt)
 
-  t.teardown(async () => {
+  t.after(async () => {
     await app.close()
     await serviceOne.close()
     await serviceTwo.close()
@@ -464,7 +453,7 @@ test('enabled false should return 403', async t => {
     method: 'GET',
     url: '/federation-schema'
   })
-  t.equal(res.statusCode, 403)
+  t.assert.strictEqual(res.statusCode, 403)
 })
 
 test('should apply default values if options is undefined', async t => {
@@ -492,7 +481,7 @@ test('should apply default values if options is undefined', async t => {
   const [serviceOne, serviceOnePort] = await createFederationService(schema)
   const [serviceTwo, serviceTwoPort] = await createFederationService(schemaAlt)
 
-  t.teardown(async () => {
+  t.after(async () => {
     await app.close()
     await serviceOne.close()
     await serviceTwo.close()
@@ -519,7 +508,7 @@ test('should apply default values if options is undefined', async t => {
     url: '/federation-schema'
   })
 
-  t.equal(res.statusCode, 200)
+  t.assert.strictEqual(res.statusCode, 200)
 })
 
 test('enabled should be a function', async t => {
@@ -547,7 +536,7 @@ test('enabled should be a function', async t => {
   const [serviceOne, serviceOnePort] = await createFederationService(schema)
   const [serviceTwo, serviceTwoPort] = await createFederationService(schemaAlt)
 
-  t.teardown(async () => {
+  t.after(async () => {
     await app.close()
     await serviceOne.close()
     await serviceTwo.close()
@@ -580,7 +569,7 @@ test('enabled should be a function', async t => {
     },
     url: '/federation-schema'
   })
-  t.equal(res.statusCode, 200)
+  t.assert.strictEqual(res.statusCode, 200)
 })
 
 test('should catch handle error', async t => {
@@ -608,7 +597,7 @@ test('should catch handle error', async t => {
   const [serviceOne, serviceOnePort] = await createFederationService(schema)
   const [serviceTwo, serviceTwoPort] = await createFederationService(schemaAlt)
 
-  t.teardown(async () => {
+  t.after(async () => {
     await app.close()
     await serviceOne.close()
     await serviceTwo.close()
@@ -642,5 +631,5 @@ test('should catch handle error', async t => {
     url: '/federation-schema'
   })
 
-  t.equal(res.statusCode, 403)
+  t.assert.strictEqual(res.statusCode, 403)
 })
