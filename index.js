@@ -61,7 +61,7 @@ async function isEnabled(options, { request, reply, context }) {
     return typeof options.enabled === 'function'
       ? options.enabled({ request, reply, context })
       : options.enabled
-  } catch (error) {
+  } catch {
     return false
   }
 }
