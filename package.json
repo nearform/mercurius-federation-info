@@ -4,10 +4,10 @@
   "description": "A plugin for mercurius federation",
   "main": "index.js",
   "type": "module",
-  "types": "index.d.ts",
+  "types": "types/index.d.ts",
   "files": [
     "index.js",
-    "index.d.ts",
+    "types/index.d.ts",
     "lib"
   ],
   "scripts": {
@@ -15,7 +15,7 @@
     "example": "node example/index.js",
     "test": "npm run test:unit && npm run test:types",
     "test:unit": "c8 --100 node --test",
-    "test:types": "tsd",
+    "test:types": "tstyche",
     "prepare": "husky"
   },
   "repository": {
@@ -52,10 +52,8 @@
     "mercurius": "^16.5.0",
     "prettier": "^3.0.3",
     "sinon": "^22.0.0",
-    "tsd": "^0.33.0"
-  },
-  "tsd": {
-    "directory": "test/types"
+    "tstyche": "^7.1.0",
+    "typescript": "^6.0.0"
   },
   "lint-staged": {
     "*.{js,jsx}": "eslint --cache --fix"
